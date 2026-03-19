@@ -163,3 +163,25 @@ function wcusage_registration_auto_accept_allowed(  $user_id, $type_num = ''  ) 
     }
     return false;
 }
+
+
+/**
+ * Determine whether a new affiliate registration should be activated immediately.
+ *
+ * Front-end registrations are auto-activated by default so the full affiliate
+ * setup finishes right after the user signs up, without waiting for manual admin
+ * approval.
+ */
+function wcusage_registration_should_auto_activate( $user_id, $type_num = '', $context = 'frontend' ) {
+    $should_auto_activate = true;
+
+    /**
+     * Filter whether a registration should be auto-activated immediately.
+     *
+     * @param bool   $should_auto_activate Whether to auto-activate the registration.
+     * @param int    $user_id              WordPress user ID.
+     * @param string $type_num             Registration template/type.
+     * @param string $context              Registration context, e.g. frontend/admin/ajax.
+     */
+    return (bool) apply_filters( 'wcusage_registration_should_auto_activate', $should_auto_activate, $user_id, $type_num, $context );
+}

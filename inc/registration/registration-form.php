@@ -656,9 +656,8 @@ function wcusage_create_new_registration(
             $type,
             $info
         );
-        // If auto accept is enabled, then instantly accept
-        $auto_accept = "";
-        $do_auto_accept = $auto_accept && wcusage_registration_auto_accept_allowed( $userid, $type );
+        // Activate the affiliate immediately after registration.
+        $do_auto_accept = wcusage_registration_should_auto_activate( $userid, $type, 'frontend' );
         if ( $do_auto_accept || $accept ) {
             $setstatus = wcusage_set_registration_status(
                 'accepted',
@@ -706,7 +705,17 @@ function wcusage_create_new_registration(
                 $info
             );
         }
+
+        return array(
+            'registration_id' => $getregisterid,
+            'auto_accepted'   => (bool) $do_auto_accept || (bool) $accept,
+        );
     }
+
+    return array(
+        'registration_id' => 0,
+        'auto_accepted'   => false,
+    );
 }
 
 /*
@@ -871,6 +880,7 @@ function wcusage_post_submit_application(  $adminpost  ) {
                             $message,
                             $role
                         );
+                        $registration_auto_accepted = ( !empty( $createregistration['auto_accepted'] ) );
                         // Get MLA fields
                         $mla = "";
                         $wcusage_field_mla_enable = wcusage_get_setting_value( 'wcusage_field_mla_enable', '0' );
@@ -935,7 +945,9 @@ function wcusage_post_submit_application(  $adminpost  ) {
                     } else {
                         if ( !$adminpost ) {
                             if ( !$alreadyexists ) {
-                                if ( isset( $options['wcusage_field_registration_accept_message'] ) ) {
+                                if ( !empty( $registration_auto_accepted ) ) {
+                                    $acceptmessage = sprintf( esc_html__( 'Your %s account for the coupon code "{coupon}" has been activated.', 'woo-coupon-usage' ), strtolower( wcusage_get_affiliate_text( __( 'affiliate', 'woo-coupon-usage' ) ) ) );
+                                } elseif ( isset( $options['wcusage_field_registration_accept_message'] ) ) {
                                     $acceptmessage = $options['wcusage_field_registration_accept_message'];
                                 } else {
                                     $acceptmessage = sprintf( esc_html__( 'Your %s application for the coupon code "{coupon}" has been submitted.', 'woo-coupon-usage' ), strtolower( wcusage_get_affiliate_text( __( 'affiliate', 'woo-coupon-usage' ) ) ) );
