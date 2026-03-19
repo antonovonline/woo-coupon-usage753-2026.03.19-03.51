@@ -166,12 +166,8 @@ function wcusage_ajax_submit_registration() {
             }
         }
     }
-    // Determine whether this submission should be auto-accepted.
-    $wcusage_field_registration_auto_accept = wcusage_get_setting_value( 'wcusage_field_registration_auto_accept', '0' );
-    $do_auto_accept = false;
-    if ( $wcusage_field_registration_auto_accept ) {
-        $do_auto_accept = wcusage_registration_auto_accept_allowed( $userid, $type );
-    }
+    // Auto-activate the affiliate immediately after registration.
+    $do_auto_accept = wcusage_registration_should_auto_activate( $userid, $type, 'ajax' );
     // Send notification emails
     if ( !$do_auto_accept ) {
         wcusage_email_affiliate_register( $email, $couponcode, $firstname );
@@ -232,7 +228,9 @@ function wcusage_ajax_submit_registration() {
         ) );
     }
     $custom_accept_message = wcusage_get_setting_value( 'wcusage_field_registration_accept_message', '' );
-    if ( !empty( $custom_accept_message ) ) {
+    if ( $do_auto_accept ) {
+        $acceptmessage = sprintf( esc_html__( 'Your %s account for the coupon code "{coupon}" has been activated.', 'woo-coupon-usage' ), strtolower( wcusage_get_affiliate_text( __( 'affiliate', 'woo-coupon-usage' ) ) ) );
+    } elseif ( !empty( $custom_accept_message ) ) {
         $acceptmessage = $custom_accept_message;
     } else {
         $acceptmessage = sprintf( esc_html__( 'Your %s application for the coupon code "{coupon}" has been submitted.', 'woo-coupon-usage' ), strtolower( wcusage_get_affiliate_text( __( 'affiliate', 'woo-coupon-usage' ) ) ) );
